@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scheda Valutazione LdP - WBP</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    margin: 0; padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+    gap: 15px;
+    margin-top: 20px;
+  }
+  .card {
+    background: white;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+    min-height: 110px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .card.red {
+    background-color: #ffe6e6;
+  }
+  .card.dimesso {
+    background-color: #d9d9d9;
+    color: #555;
+    font-style: italic;
+  }
+  .scheda {
+    display: none;
+    max-width: 900px;
+    margin: 30px auto;
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.15);
+  }
+  label {
+    font-weight: 600;
+    display: block;
+    margin-top: 15px;
+  }
+  input[type="text"], input[type="date"], select, textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  textarea {
+    resize: vertical;
+  }
+  .dispositivi select, .dispositivi input {
+    margin-top: 5px;
+  }
+  .dispositivi {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+  }
+  .dispositivo-item {
+    flex: 1 1 200px;
+  }
+  .btn {
+    margin-top: 25px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .btn:hover {
+    background-color: #2c80b4;
+  }
+  .btn-danger {
+    background-color: #e74c3c;
+  }
+  .btn-danger:hover {
+    background-color: #b93122;
+  }
+  #listaMedicazioni {
+    max-height: 120px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px;
+    background: #fafafa;
+    margin-top: 5px;
+  }
+  #listaMedicazioni li {
+    margin-bottom: 6px;
+  }
+  .flex-row {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+  .flex-row > * {
+    flex: 1;
+  }
+</style>
+</head>
+<body>
+
+<h1>Gestione Pazienti - Lesioni da Pressione</h1>
+
+<div class="grid" id="dashboard"></div>
+
+<div class="scheda" id="schedaPaziente">
+  <div class="flex-row">
+    <div>
+      <label for="inputNome">Nome:</label>
+      <input type="text" id="inputNome" />
+    </div>
+    <div>
+      <label for="inputCognome">Cognome:</label>
+      <input type="text" id="inputCognome" />
+    </div>
+    <div>
+      <label>Letto n°:</label>
+      <div id="numeroLetto" style="padding: 8px; background: #eee; border-radius: 4px;"></div>
+    </div>
+  </div>
+
+  <label>Dispositivi presenti:</label>
+  <div class="dispositivi">
+    <div class="dispositivo-item">
+      <label for="cvSelect">CV (Tipo):</label>
+      <select id="cvSelect">
+        <option value="">-- Nessuno --</option>
+        <option value="Silicone">Silicone</option>
+        <option value="Latex">Latex</option>
+        <option value="Altro">Altro</option>
+      </select>
+      <input type="text" id="cvSize" placeholder="Grandezza CV (es. CH14)" />
+    </div>
+    <div class="dispositivo-item">
+      <label for="cvcSelect">CVC:</label>
+      <select id="cvcSelect">
+        <option value="">-- Nessuno --</option>
+        <option value="Giugulare">Giugulare</option>
+        <option value="Succlavia">Succlavia</option>
+        <option value="Femore">Femore</option>
+      </select>
+    </div>
+    <div class="dispositivo-item">
+      <label for="cvpSelect">CVP:</label>
+      <select id="cvpSelect">
+        <option value="">-- Nessuno --</option>
+        <option value="Radiale">Radiale</option>
+        <option value="Mediana">Mediana</option>
+      </select>
+    </div>
+    <div class="dispositivo-item">
+      <label for="sngSelect">SNG:</label>
+      <select id="sngSelect">
+        <option value="">-- Nessuno --</option>
+        <option value="CH12">CH12</option>
+        <option value="CH14">CH14</option>
+        <option value="PVC">PVC</option>
+      </select>
+    </div>
+    <div class="dispositivo-item" style="flex: 1 1 100%;">
+      <label for="pegDate">Data PEG:</label>
+      <input type="date" id="pegDate" />
+    </div>
+    <div class="dispositivo-item" style="flex: 1 1 100%;">
+      <label for="altroText">Altro dispositivo:</label>
+      <input type="text" id="altroText" placeholder="Es. drenaggio, CPAP..." />
+    </div>
+  </div>
+
+  <label for="sedeLesione">Sede della lesione:</label>
+  <select id="sedeLesione">
+    <option value="">-- Seleziona sede --</option>
+    <option>Sacro</option>
+    <option>Calcagno destro</option>
+    <option>Calcagno sinistro</option>
+    <option>Trocantere destro</option>
+    <option>Trocantere sinistro</option>
+    <option>Gomito destro</option>
+    <option>Gomito sinistro</option>
+    <option>Malleolo destro</option>
+    <option>Malleolo sinistro</option>
+    <option>Occipite</option>
+    <option>Scapola destra</option>
+    <option>Scapola sinistra</option>
+    <option>Orecchio destro</option>
+    <option>Orecchio sinistro</option>
+    <option>Tallone</option>
+    <option>Colonna vertebrale</option>
+    <option>Altra sede</option>
+  </select>
+
+  <label for="dataLesione">Data rilevazione lesione:</label>
+  <input type="date" id="dataLesione" />
+
+  <label for="tipoTessuto">Tipo di tessuto:</label>
+  <input type="text" id="tipoTessuto" placeholder="Es. necrosi, fibrina, granulazione..." />
+
+  <label for="note">Annotazioni cliniche:</label>
+  <textarea id="note" rows="4" placeholder="Annotazioni cliniche..."></textarea>
+
+  <label for="decorso">Decorso:</label>
+  <textarea id="decorso" rows="4" placeholder="Descrizione decorso..."></textarea>
+
+  <label for="altreNote">Altre informazioni utili:</label>
+  <textarea id="altreNote" rows="3" placeholder="Altre informazioni..."></textarea>
+
+  <hr>
+
+  <label>Storico medicazioni:</label>
+  <div class="flex-row" style="align-items:flex-end;">
+    <input type="date" id="filtroData" />
+    <button class="btn" onclick="filtraMedicazioni()">Filtra per data</button>
+  </div>
+  <ul id="listaMedicazioni"></ul>
+
+  <label style="margin-top: 15px;">Aggiungi medicazione:</label>
+  <div class="flex-row" style="align-items:flex-end;">
+    <input type="date" id="medicazioneData" />
+    <input type="text" id="medicazioneNota" placeholder="Nota medicazione..." />
+    <button class="btn" onclick="aggiungiMedicazione()">Aggiungi</button>
+  </div>
+
+  <hr>
+
+  <button class="btn btn-danger" onclick="dimettiPaziente()">Dimetti paziente</button>
+  <button class="btn" onclick="tornaAllaDashboard()">Torna alla lista pazienti</button>
+</div>
+
+<script>
+  // Variabili globali
+  const dashboard = document.getElementById("dashboard");
+  const scheda = document.getElementById("schedaPaziente");
+
+  const inputNome = document.getElementById("inputNome");
+  const inputCognome = document.getElementById("inputCognome");
+  const numeroLetto = document.getElementById("numeroLetto");
+
+  const cvSelect = document.getElementById("cvSelect");
+  const cvSize = document.getElementById("cvSize");
+  const cvcSelect = document.getElementById("cvcSelect");
+  const cvpSelect = document.getElementById("cvpSelect");
+  const sngSelect = document.getElementById("sngSelect");
+  const pegDate = document.getElementById("pegDate");
+  const altroText = document.getElementById("altroText");
+
+  const sedeLesione = document.getElementById("sedeLesione");
+  const dataLesione = document.getElementById("dataLesione");
+  const tipoTessuto = document.getElementById("tipoTessuto");
+  const note = document.getElementById("note");
+  const decorso = document.getElementById("decorso");
+  const altreNote = document.getElementById("altreNote");
+  const calendario = null; // Se ti serve inserisci
+
+  let pazienteSelezionato = null;
+
+  // Dati pazienti simulati (iniziali)
+  let pazienti = [];
+
+  // Pazienti dimessi
+  let pazientiDimessi = [];
+
+  // Caricamento iniziale con 24 pazienti (placeholder)
+  function caricaPazientiIniziali() {
+    pazienti = [];
+    for(let i=1; i<=24; i++){
+      pazienti.push({
+        id: i,
+        nome: "Nome"+i,
+        cognome: "Cognome"+i,
+        letto: i,
+        dispositivi: {},
+        sedeLesione: "",
+        dataLesione: "",
+        tipoTessuto: "",
+        note: "",
+        decorso: "",
+        altreNote: "",
+        calendario: "",
+        medicazioni: [],
+        ultimoControllo: null,
+        dimesso: false
+      });
+    }
+  }
+
+  // Visualizza lista pazienti (ricoverati + dimessi)
+  function mostraListaPazienti() {
+    dashboard.innerHTML = "";
+
+    // Ordina ricoverati per letto
+    const ricoverati = pazienti.filter(p => !p.dimesso).sort((a,b) => a.letto - b.letto);
+    ricoverati.forEach(p => {
+      const card = creaCardPaziente(p);
+      dashboard.appendChild(card);
+    });
+
+    // Divider dimessi
+    if(pazientiDimessi.length > 0) {
+      const div = document.createElement("div");
+      div.style.gridColumn = "1 / -1";
+      div.style.marginTop = "30px";
+      div.innerHTML = "<hr><h3 style='color:#666;'>Pazienti Dimessi</h3>";
+      dashboard.appendChild(div);
+
+      pazientiDimessi.forEach(p => {
+        const card = creaCardPaziente(p, true);
+        dashboard.appendChild(card);
+      });
+    }
+  }
+
+  // Crea card singolo paziente
+  function creaCardPaziente(paz, dimesso=false) {
+    const card = document.createElement("div");
+    card.classList.add("card");
+    if(dimesso) card.classList.add("dimesso");
+
+    // Controlla ultimo controllo e colora se non fatto oggi
+    if(!dimesso){
+      if(!paz.ultimoControllo || !isDataOggi(paz.ultimoControllo)){
+        card.classList.add("red");
+      }
+    }
+
+    card.innerHTML = `
+      <strong>${paz.nome} ${paz.cognome}</strong>
+      <div>Letto: ${paz.letto}</div>
+      <small>Ultimo controllo: ${paz.ultimoControllo ? paz.ultimoControllo : "Mai"}</small>
+    `;
+
+    if(!dimesso){
+      card.onclick = () => mostraScheda(paz);
+    }
+
+    return card;
+  }
+
+  // Controlla se data è oggi (stringa "YYYY-MM-DD")
+  function isDataOggi(dataStr) {
+    const oggi = new Date();
+    const d = new Date(dataStr);
+    return oggi.toDateString() === d.toDateString();
+  }
+
+  // Mostra scheda paziente completa
+  function mostraScheda(paz) {
+    pazienteSelezionato = paz;
+    scheda.style.display = "block";
+    dashboard.style.display = "none";
+
+    // Popola campi
+    inputNome.value = paz.nome || "";
+    inputCognome.value = paz.cognome || "";
+    numeroLetto.textContent = paz.letto;
+
+    if(!paz.dispositivi) paz.dispositivi = {};
+
+    cvSelect.value = paz.dispositivi.cv || "";
+    cvSize.value = paz.dispositivi.cvSize || "";
+    cvcSelect.value = paz.dispositivi.cvc || "";
+    cvpSelect.value = paz.dispositivi.cvp || "";
+    sngSelect.value = paz.dispositivi.sng || "";
+    pegDate.value = paz.dispositivi.peg || "";
+    altroText.value = paz.dispositivi.altro || "";
+
+    sedeLesione.value = paz.sedeLesione || "";
+    dataLesione.value = paz.dataLesione || "";
+    tipoTessuto.value = paz.tipoTessuto || "";
+    note.value = paz.note || "";
+    decorso.value = paz.decorso || "";
+    altreNote.value = paz.altreNote || "";
+
+    if(!paz.medicazioni) paz.medicazioni = [];
+    mostraMedicazioni(paz.medicazioni);
+
+    document.getElementById("filtroData").value = "";
+
+    aggiornaUltimoControllo();
+  }
+
+  // Aggiorna la data ultimo controllo (esempio)
+  function aggiornaUltimoControllo() {
+    // Imposta data ultima visita a oggi (non salvata qui)
+  }
+
+  // Salva le modifiche nella scheda
+  function salvaScheda() {
+    if(!pazienteSelezionato) return;
+
+    pazienteSelezionato.nome = inputNome.value.trim();
+    pazienteSelezionato.cognome = inputCognome.value.trim();
+
+    pazienteSelezionato.dispositivi = {
+      cv: cvSelect.value,
+      cvSize: cvSize.value.trim(),
+      cvc: cvcSelect.value,
+      cvp: cvpSelect.value,
+      sng: sngSelect.value,
+      peg: pegDate.value,
+      altro: altroText.value.trim()
+    };
+
+    pazienteSelezionato.sedeLesione = sedeLesione.value;
+    pazienteSelezionato.dataLesione = dataLesione.value;
+    pazienteSelezionato.tipoTessuto = tipoTessuto.value.trim();
+    pazienteSelezionato.note = note.value.trim();
+    pazienteSelezionato.decorso = decorso.value.trim();
+    pazienteSelezionato.altreNote = altreNote.value.trim();
+
+    // ultimo controllo a oggi
+    const oggiStr = new Date().toISOString().slice(0,10);
+    pazienteSelezionato.ultimoControllo = oggiStr;
+
+    // Aggiorna lista
+    mostraListaPazienti();
+  }
+
+  // Aggiungi medicazione
+  function aggiungiMedicazione() {
+    if (!pazienteSelezionato) return alert("Seleziona un paziente.");
+    if (!pazienteSelezionato.medicazioni) pazienteSelezionato.medicazioni = [];
+
+    const data = document.getElementById("medicazioneData").value;
+    const nota = document.getElementById("medicazioneNota").value.trim();
+
+    if (!data) return alert("Inserisci la data della medicazione.");
+    if (!nota) return alert("Inserisci la nota della medicazione.");
+
+    pazienteSelezionato.medicazioni.push({ data, nota });
+
+    document.getElementById("medicazioneData").value = "";
+    document.getElementById("medicazioneNota").value = "";
+
+    mostraMedicazioni(pazienteSelezionato.medicazioni);
+    salvaScheda();
+  }
+
+  // Mostra medicazioni (tutte o filtrate)
+  function mostraMedicazioni(medicazioni) {
+    const lista = document.getElementById("listaMedicazioni");
+    lista.innerHTML = "";
+
+    if(!medicazioni || medicazioni.length === 0){
+      lista.innerHTML = "<li>Nessuna medicazione registrata.</li>";
+      return;
+    }
+
+    medicazioni.sort((a,b) => a.data.localeCompare(b.data));
+
+    medicazioni.forEach(m => {
+      const li = document.createElement("li");
+      li.textContent = `${m.data}: ${m.nota}`;
+      lista.appendChild(li);
+    });
+  }
+
+  // Filtra medicazioni per data
+  function filtraMedicazioni() {
+    if(!pazienteSelezionato) return;
+
+    if(!pazienteSelezionato.medicazioni) pazienteSelezionato.medicazioni = [];
+
+    const filtro = document.getElementById("filtroData").value;
+
+    if(!filtro){
+      mostraMedicazioni(pazienteSelezionato.medicazioni);
+    } else {
+      const filtered = pazienteSelezionato.medicazioni.filter(m => m.data === filtro);
+      mostraMedicazioni(filtered);
+    }
+  }
+
+  // Torna alla dashboard salvando
+  function tornaAllaDashboard() {
+    salvaScheda();
+    pazienteSelezionato = null;
+    scheda.style.display = "none";
+    dashboard.style.display = "grid";
+    mostraListaPazienti();
+  }
+
+  // Dimetti paziente: sposta da ricoverati a dimessi
+  function dimettiPaziente() {
+    if(!pazienteSelezionato) return;
+
+    if(!confirm(`Sei sicuro di dimettere il paziente ${pazienteSelezionato.nome} ${pazienteSelezionato.cognome}?`)){
+      return;
+    }
+
+    // Aggiorna flag
+    pazienteSelezionato.dimesso = true;
+
+    // Rimuovi da ricoverati e aggiungi a dimessi
+    pazienti = pazienti.filter(p => p.id !== pazienteSelezionato.id);
+    pazientiDimessi.push(pazienteSelezionato);
+
+    // Se meno di 24 pazienti ricoverati, aggiungi paziente vuoto
+    while(pazienti.length < 24){
+      const newId = pazienti.length + pazientiDimessi.length + 1;
+      pazienti.push({
+        id: newId,
+        nome: "",
+        cognome: "",
+        letto: pazienti.length + 1,
+        dispositivi: {},
+        sedeLesione: "",
+        dataLesione: "",
+        tipoTessuto: "",
+        note: "",
+        decorso: "",
+        altreNote: "",
+        calendario: "",
+        medicazioni: [],
+        ultimoControllo: null,
+        dimesso: false
+      });
+    }
+
+    tornaAllaDashboard();
+  }
+
+  // Inizializza tutto
+  function init() {
+    caricaPazientiIniziali();
+    mostraListaPazienti();
+
+    // Salvataggio automatico su input modificati
+    [
+      inputNome, inputCognome, cvSelect, cvSize, cvcSelect, cvpSelect, sngSelect, pegDate, altroText,
+      sedeLesione, dataLesione, tipoTessuto, note, decorso, altreNote
+    ].forEach(el => {
+      el.addEventListener("change", salvaScheda);
+      el.addEventListener("input", salvaScheda);
+    });
+  }
+
+  window.onload = init;
+
+</script>
+
+</body>
+</html>
