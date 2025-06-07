@@ -246,7 +246,7 @@
 
     .btn:hover {
       background-color: #2b79e0;
-      transform: translateY(-2px);
+      transformational: translateY(-2px);
     }
 
     .btn:active {
@@ -473,6 +473,8 @@
     <div class="header-actions">
       <button class="btn" onclick="aggiungiPaziente()" aria-label="Aggiungi nuovo paziente"><i class="fas fa-plus"></i> Aggiungi</button>
       <button class="btn" onclick="esportaPazienti()" aria-label="Esporta dati in JSON"><i class="fas fa-download"></i> Esporta</button>
+      <button class="btn" onclick="document.getElementById('importaFile').click()" aria-label="Importa dati da JSON"><i class="fas fa-upload"></i> Importa</button>
+      <input type="file" id="importaFile" accept=".json" style="display: none;" onchange="importaPazienti(event)" aria-label="Seleziona file JSON da importare">
     </div>
   </header>
   <main>
@@ -498,8 +500,25 @@
           <input type="date" id="dataNascita" aria-describedby="dataNascitaHelp">
           <small id="dataNascitaHelp">Formato: GG/MM/AAAA</small>
         </div>
+        <div>
+          <label for="dieta">Dieta:</label>
+          <input type="text" id="dieta" placeholder="Es. Normale, Diabetica, Ipocalorica..." aria-label="Dieta del paziente">
+        </div>
+        <div>
+          <label for="usaMad">Usa MAD:</label>
+          <select id="usaMad" aria-label="Uso del MAD">
+            <option value="">-- Seleziona --</option>
+            <option value="sì">SÌ</option>
+            <option value="no">NO</option>
+          </select>
+        </div>
       </div>
-      <!-- Sezione SBAR spostata qui, dopo Data di nascita -->
+      <div class="flex-row">
+        <div>
+          <label for="repartoProvenienza">Reparto di provenienza:</label>
+          <input type="text" id="repartoProvenienza" placeholder="Es. Medicina, Chirurgia..." aria-label="Reparto di provenienza del paziente">
+        </div>
+      </div>
       <hr>
       <label>SBAR:</label>
       <div class="sbar-section">
@@ -671,6 +690,9 @@
     const inputCognome = document.getElementById("inputCognome");
     const inputLetto = document.getElementById("inputLetto");
     const dataNascita = document.getElementById("dataNascita");
+    const dieta = document.getElementById("dieta");
+    const usaMad = document.getElementById("usaMad");
+    const repartoProvenienza = document.getElementById("repartoProvenienza");
     const cvSelect = document.getElementById("cvSelect");
     const cvSize = document.getElementById("cvSize");
     const cvcSelect = document.getElementById("cvcSelect");
@@ -755,6 +777,9 @@
         cognome: "",
         letto: 1,
         dataNascita: "",
+        dieta: "",
+        usaMad: "",
+        repartoProvenienza: "",
         dispositivi: {},
         sedeLesione: "",
         dataLesione: "",
@@ -792,6 +817,88 @@
       }
     }
 
+    // Importa pazienti da JSON
+    function importaPazienti(event) {
+      const file = event.target.files[0];
+      if (!file) {
+        mostraNotifica("Nessun file selezionato.", "error");
+        return;
+      }
+
+      if (!file.name.endsWith('.json')) {
+        mostraNotifica("Seleziona un file JSON valido.", "error");
+        event.target.value = ''; // Resetta l'input file
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const dati = JSON.parse(e.target.result);
+          
+          // Validazione dei dati importati
+          if (!dati.pazienti || !Array.isArray(dati.pazienti) || !dati.pazientiDimessi || !Array.isArray(dati.pazientiDimessi)) {
+            throw new Error("Formato JSON non valido.");
+          }
+
+          // Verifica struttura di ciascun paziente
+          const validaPaziente = (p) => p && typeof p === 'object' && 'id' in p && 'nome' in p && 'cognome' in p && 'letto' in p;
+          
+          if (!dati.pazienti.every(validaPaziente) || !dati.pazientiDimessi.every(validaPaziente)) {
+            throw new Error("Dati pazienti non validi.");
+          }
+
+          // Controlla duplicati di ID e letti occupati
+          const tuttiPazienti = [...dati.pazienti, ...dati.pazientiDimessi];
+          const idSet = new Set(tuttiPazienti.map(p => p.id));
+          const lettiAttivi = new Set(dati.pazienti.filter(p => !p.dimesso).map(p => p.letto));
+
+          if (idSet.size !== tuttiPazienti.length) {
+            throw new Error("ID duplicati trovati nel file.");
+          }
+          if (lettiAttivi.size !== dati.pazienti.filter(p => !p.dimesso).length) {
+            throw new Error("Letti duplicati trovati tra i pazienti non dimessi.");
+          }
+
+          // Sovrascrivi i dati esistenti
+          pazienti = dati.pazienti;
+          pazientiDimessi = dati.pazientiDimessi;
+
+          // Normalizza i dati per evitare campi mancanti
+          pazienti.forEach(p => {
+            p.dispositivi = p.dispositivi || {};
+            p.medicazioni = p.medicazioni || [];
+            p.sbar = p.sbar || { situazione: "", contesto: "", valutazione: "", raccomandazioni: "" };
+            p.dimesso = p.dimesso || false;
+            p.dieta = p.dieta || "";
+            p.usaMad = p.usaMad || "";
+            p.repartoProvenienza = p.repartoProvenienza || "";
+          });
+          pazientiDimessi.forEach(p => {
+            p.dispositivi = p.dispositivi || {};
+            p.medicazioni = p.medicazioni || [];
+            p.sbar = p.sbar || { situazione: "", contesto: "", valutazione: "", raccomandazioni: "" };
+            p.dimesso = true;
+            p.dieta = p.dieta || "";
+            p.usaMad = p.usaMad || "";
+            p.repartoProvenienza = p.repartoProvenienza || "";
+          });
+
+          salvaDati();
+          mostraListaPazienti();
+          mostraNotifica("Dati importati con successo!");
+        } catch (error) {
+          mostraNotifica(`Errore durante l'importazione: ${error.message}`, "error");
+        }
+        event.target.value = ''; // Resetta l'input file
+      };
+      reader.onerror = function() {
+        mostraNotifica("Errore nella lettura del file.", "error");
+        event.target.value = ''; // Resetta l'input file
+      };
+      reader.readAsText(file);
+    }
+
     // Aggiungi nuovo paziente
     function aggiungiPaziente() {
       const maxLetto = Math.max(...pazienti.map(p => p.letto || 0), 0);
@@ -802,6 +909,9 @@
         cognome: "",
         letto: maxLetto + 1,
         dataNascita: "",
+        dieta: "",
+        usaMad: "",
+        repartoProvenienza: "",
         dispositivi: {},
         sedeLesione: "",
         dataLesione: "",
@@ -868,6 +978,9 @@
           <strong>${sanitizza(paziente.nome)} ${sanitizza(paziente.cognome)}</strong>
           <div>Letto: ${sanitizza(paziente.letto)}</div>
           <div>Età: ${calcolaEta(paziente.dataNascita)}</div>
+          <div>Dieta: ${sanitizza(paziente.dieta || "Non specificata")}</div>
+          <div>Usa MAD: ${sanitizza(paziente.usaMad || "Non specificato")}</div>
+          <div>Reparto: ${sanitizza(paziente.repartoProvenienza || "Non specificato")}</div>
           <small>Ultimo controllo: ${paziente.ultimoControllo ? sanitizza(paziente.ultimoControllo) : "Mai"}</small>
           <div class="sbar-content">
             <p><strong>Situazione:</strong> ${sanitizza(paziente.sbar?.situazione || "Non specificata")}</p>
@@ -902,6 +1015,9 @@
       inputCognome.value = paziente.cognome || "";
       inputLetto.value = paziente.letto || "";
       dataNascita.value = paziente.dataNascita || "";
+      dieta.value = paziente.dieta || "";
+      usaMad.value = paziente.usaMad || "";
+      repartoProvenienza.value = paziente.repartoProvenienza || "";
       if (!paziente.dispositivi) paziente.dispositivi = {};
       cvSelect.value = paziente.dispositivi.cv || "";
       cvSize.value = paziente.dispositivi.cvSize || "";
@@ -961,6 +1077,9 @@
       pazienteCorrente.cognome = inputCognome.value.trim();
       pazienteCorrente.letto = nuovoLetto;
       pazienteCorrente.dataNascita = dataNascita.value;
+      pazienteCorrente.dieta = dieta.value.trim();
+      pazienteCorrente.usaMad = usaMad.value;
+      pazienteCorrente.repartoProvenienza = repartoProvenienza.value.trim();
       pazienteCorrente.dispositivi = {
         cv: cvSelect.value,
         cvSize: cvSize.value.trim(),
@@ -1150,6 +1269,9 @@
               <p><span class="label">Cognome:</span> ${sanitizza(pazienteCorrente.cognome)}</p>
               <p><span class="label">Letto n°:</span> ${sanitizza(pazienteCorrente.letto)}</p>
               <p><span class="label">Età:</span> ${calcolaEta(pazienteCorrente.dataNascita)}</p>
+              <p><span class="label">Dieta:</span> ${sanitizza(pazienteCorrente.dieta || 'Non specificata')}</p>
+              <p><span class="label">Usa MAD:</span> ${sanitizza(pazienteCorrente.usaMad || 'Non specificato')}</p>
+              <p><span class="label">Reparto:</span> ${sanitizza(pazienteCorrente.repartoProvenienza || 'Non specificato')}</p>
             </div>
             <div class="section">
               <h2>Metodo SBAR</h2>
@@ -1194,7 +1316,7 @@
     function init() {
       caricaDati();
       mostraListaPazienti();
-      [inputNome, inputCognome, inputLetto, dataNascita, cvSelect, cvSize, cvcSelect, cvpSelect, piccSelect, sedeLesione, sedeLesioneAltro, dataLesione, tipoTessutoSelect, tipoTessutoAltro, note, decorso, altreNote, sbarSituazione, sbarContesto, sbarValutazione, sbarRaccomandazioni]
+      [inputNome, inputCognome, inputLetto, dataNascita, dieta, usaMad, repartoProvenienza, cvSelect, cvSize, cvcSelect, cvpSelect, piccSelect, sedeLesione, sedeLesioneAltro, dataLesione, tipoTessutoSelect, tipoTessutoAltro, note, decorso, altreNote, sbarSituazione, sbarContesto, sbarValutazione, sbarRaccomandazioni]
         .filter(el => el)
         .forEach(el => {
           el.addEventListener("change", salvaScheda);
