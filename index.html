@@ -78,9 +78,21 @@
       color: #fff;
     }
 
+    .card.yellow {
+      background-color: #ffd700;
+      color: #333;
+    }
+
     .card.red .card-content,
-    .card.red .sbar-content {
+    .card.red .sbar-content,
+    .card.red .alert-content {
       color: #fff;
+    }
+
+    .card.yellow .card-content,
+    .card.yellow .sbar-content,
+    .card.yellow .alert-content {
+      color: #333;
     }
 
     .card.dimesso {
@@ -99,21 +111,25 @@
       color: #777;
     }
 
-    .card.red small {
+    .card.red small,
+    .card.yellow small {
       color: #eee;
     }
 
-    /* Stili per SBAR nella card */
-    .sbar-content {
+    /* Stili per SBAR e Alert nella card */
+    .sbar-content,
+    .alert-content {
       margin-top: 10px;
       font-size: 0.9rem;
     }
 
-    .sbar-content p {
+    .sbar-content p,
+    .alert-content p {
       margin: 5px 0;
     }
 
-    .sbar-content strong {
+    .sbar-content strong,
+    .alert-content strong {
       font-size: 0.95rem;
       display: inline;
     }
@@ -183,7 +199,9 @@
     .flex-row {
       display: flex;
       gap: 20px;
-      align-items: center несколь    }
+      align-items: center;
+      flex-wrap: wrap;
+    }
 
     .flex-row > * {
       flex: 1 1 200px;
@@ -224,6 +242,56 @@
       font-size: 0.85rem;
       color: #777;
       margin-top: 2px;
+    }
+
+    /* Sezione Alert */
+    .alert-section {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      border: 1px solid #d1d9e0;
+    }
+
+    .alert-section input,
+    .alert-section textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #d1d9e0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+
+    .alert-section textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .alert-section label {
+      font-weight: 600;
+      color: #1a3c5a;
+      margin-bottom: 5px;
+    }
+
+    #listaAlert {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #d1d9e0;
+      border-radius: 6px;
+      padding: 10px;
+      background: #fafafa;
+      margin-top: 10px;
+    }
+
+    #listaAlert li {
+      display: block;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    #listaAlert li:last-child {
+      border-bottom: none;
     }
 
     /* Pulsanti */
@@ -292,7 +360,7 @@
       overflow-y: auto;
       border: 1px solid #d1d9e0;
       border-radius: 6px;
-      padding: 10px: 10px;
+      padding: 10px;
       background: #fafafa;
       margin-top: 10px;
     }
@@ -379,14 +447,14 @@
         display: block;
       }
 
-      .sbar-section {
+      .sbar-section, .alert-section {
         border: none;
         background: transparent;
         padding: 0;
         margin-bottom: 20px;
       }
 
-      .sbar-section textarea {
+      .sbar-section textarea, .alert-section textarea, .alert-section input {
         border: none;
         background: transparent;
         font-size: 1rem;
@@ -395,29 +463,29 @@
         height: auto;
       }
 
-      .sbar-section label {
+      .sbar-section label, .alert-section label {
         font-weight: bold;
         display: inline-block;
         width: 150px;
         vertical-align: top;
       }
 
-      .sbar-section .form-help {
+      .sbar-section .form-help, .alert-section .form-help {
         display: none;
       }
 
-      #listaMedicazioni {
+      #listaMedicazioni, #listaAlert {
         border: none;
         background: transparent;
         max-height: none;
       }
 
-      #listaMedicazioni li {
+      #listaMedicazioni li, #listaAlert li {
         border-bottom: 1px solid #eee;
         padding: 5px 0;
       }
 
-      #filtroData, .btn, #btnModificaMedicazione, #medicazioneData, #medicazioneNota, #modalitaEsecuzione {
+      #filtroData, .btn, #btnModificaMedicazione, #medicazioneData, #medicazioneNota, #modalitaEsecuzione, #alertData, #alertNota {
         display: none;
       }
 
@@ -463,7 +531,7 @@
         padding: 10px;
       }
 
-      .sbar-content {
+      .sbar-content, .alert-content {
         font-size: 0.85rem;
       }
     }
@@ -696,6 +764,25 @@
       </div>
       <ul id="listaMedicazioni" aria-live="polite"></ul>
       <hr>
+      <label>Aggiungi/Modifica Alert:</label>
+      <div class="alert-section">
+        <div class="flex-row">
+          <div>
+            <label for="alertData">Data:</label>
+            <input type="date" id="alertData" aria-label="Data dell'alert" required>
+          </div>
+          <div>
+            <label for="alertNota">Nota:</label>
+            <textarea id="alertNota" rows="3" placeholder="Es. Cambiare CV il 10/06/2025..." aria-label="Nota dell'alert" required></textarea>
+          </div>
+        </div>
+        <div class="flex-row" style="align-items:flex-end;">
+          <button class="btn" onclick="aggiungiAlert()" aria-label="Aggiungi alert"><i class="fas fa-bell"></i> Aggiungi Alert</button>
+        </div>
+      </div>
+      <label style="margin-top: 15px;">Storico Alert:</label>
+      <ul id="listaAlert" aria-live="polite"></ul>
+      <hr>
       <div class="action-buttons">
         <button class="btn btn-danger" id="btnDimetti" onclick="dimettiPaziente()" aria-label="Dimetti paziente"><i class="fas fa-sign-out-alt"></i> Dimetti</button>
         <button class="btn" onclick="stampaScheda()" aria-label="Stampa scheda"><i class="fas fa-print"></i> Stampa</button>
@@ -736,6 +823,9 @@
     const medicazioneNota = document.getElementById("medicazioneNota");
     const modalitaEsecuzione = document.getElementById("modalitaEsecuzione");
     const listaMedicazioni = document.getElementById("listaMedicazioni");
+    const alertData = document.getElementById("alertData");
+    const alertNota = document.getElementById("alertNota");
+    const listaAlert = document.getElementById("listaAlert");
     // Variabili SBAR
     const sbarSituazione = document.getElementById("sbarSituazione");
     const sbarContesto = document.getElementById("sbarContesto");
@@ -811,6 +901,7 @@
         stadioLesione: "",
         note: "",
         medicazioni: [],
+        alerts: [],
         ultimaMedicazioneFatta: null,
         dimesso: false,
         sbar: {
@@ -886,8 +977,13 @@
           pazienti.forEach(p => {
             p.dispositivi = p.dispositivi || {};
             p.medicazioni = p.medicazioni || [];
+            p.alerts = p.alerts || [];
             p.medicazioni.forEach(m => {
               m.modalitaEsecuzione = m.modalitaEsecuzione || "";
+              m.fatta = m.fatta || false;
+            });
+            p.alerts.forEach(a => {
+              a.attivo = a.attivo !== undefined ? a.attivo : true;
             });
             p.sbar = p.sbar || { situazione: "", contesto: "", valutazione: "", raccomandazioni: "" };
             p.dimesso = p.dimesso || false;
@@ -904,8 +1000,13 @@
           pazientiDimessi.forEach(p => {
             p.dispositivi = p.dispositivi || {};
             p.medicazioni = p.medicazioni || [];
+            p.alerts = p.alerts || [];
             p.medicazioni.forEach(m => {
               m.modalitaEsecuzione = m.modalitaEsecuzione || "";
+              m.fatta = m.fatta || false;
+            });
+            p.alerts.forEach(a => {
+              a.attivo = a.attivo !== undefined ? a.attivo : true;
             });
             p.sbar = p.sbar || { situazione: "", contesto: "", valutazione: "", raccomandazioni: "" };
             p.dimesso = true;
@@ -955,6 +1056,7 @@
         stadioLesione: "",
         note: "",
         medicazioni: [],
+        alerts: [],
         ultimaMedicazioneFatta: null,
         dimesso: false,
         sbar: {
@@ -978,6 +1080,12 @@
       const oggi = new Date().toISOString().slice(0, 10);
       const ultimaMedicazione = paziente.ultimaMedicazioneFatta || null;
       return ultimaMedicazione !== oggi;
+    }
+
+    // Verifica se il paziente ha un alert attivo
+    function haAlertAttivo(paziente) {
+      if (paziente.dimesso || !paziente.alerts) return false;
+      return paziente.alerts.some(a => a.attivo === true);
     }
 
     // Mostra lista pazienti
@@ -1008,9 +1116,12 @@
       card.classList.add("card");
       if (dimesso) {
         card.classList.add("dimesso");
+      } else if (haAlertAttivo(paziente)) {
+        card.classList.add("yellow");
       } else if (haLesioni(paziente)) {
         card.classList.add("red");
       }
+      const alertAttivo = paziente.alerts ? paziente.alerts.find(a => a.attivo === true) : null;
       card.innerHTML = `
         <div class="card-content">
           <strong>${sanitizza(paziente.nome)} ${sanitizza(paziente.cognome)}</strong>
@@ -1027,6 +1138,11 @@
             <p><strong>Valutazione:</strong> ${sanitizza(paziente.sbar?.valutazione || "Non specificata")}</p>
             <p><strong>Raccomandazioni:</strong> ${sanitizza(paziente.sbar?.raccomandazioni || "Non specificate")}</p>
           </div>
+          ${alertAttivo ? `
+            <div class="alert-content">
+              <p><strong>Alert:</strong> ${sanitizza(alertAttivo.data)} - ${sanitizza(alertAttivo.nota)}</p>
+            </div>
+          ` : ''}
         </div>
       `;
       card.dataset.id = paziente.id;
@@ -1079,11 +1195,15 @@
       sbarRaccomandazioni.value = paziente.sbar.raccomandazioni || "";
       btnDimetti.disabled = paziente.dimesso;
       if (!paziente.medicazioni) paziente.medicazioni = [];
+      if (!paziente.alerts) paziente.alerts = [];
       mostraMedicazioni(paziente.medicazioni);
+      mostraAlert(paziente.alerts);
       filtroData.value = "";
       medicazioneData.value = "";
       medicazioneNota.value = "";
       modalitaEsecuzione.value = "";
+      alertData.value = "";
+      alertNota.value = "";
       btnModificaMedicazione.style.display = "none";
       indiceMedicazioneModifica = null;
     }
@@ -1263,6 +1383,62 @@
       }
     }
 
+    // Aggiungi alert
+    function aggiungiAlert() {
+      if (!pazienteCorrente) {
+        mostraNotifica("Seleziona un paziente.", "error");
+        return;
+      }
+      const data = alertData.value;
+      const nota = alertNota.value.trim();
+      if (!data || !nota) {
+        mostraNotifica("Data e nota dell'alert sono obbligatori.", "error");
+        return;
+      }
+      pazienteCorrente.alerts.push({
+        data,
+        nota,
+        attivo: true
+      });
+      alertData.value = "";
+      alertNota.value = "";
+      mostraAlert(pazienteCorrente.alerts);
+      salvaDati();
+      mostraListaPazienti();
+      mostraNotifica("Alert aggiunto!");
+    }
+
+    // Segna alert come completato
+    function segnaAlertCompletato(indice) {
+      if (!pazienteCorrente || !pazienteCorrente.alerts[indice]) return;
+      pazienteCorrente.alerts[indice].attivo = false;
+      mostraAlert(pazienteCorrente.alerts);
+      salvaDati();
+      mostraListaPazienti();
+      mostraNotifica("Alert completato!");
+    }
+
+    // Mostra alert
+    function mostraAlert(alerts) {
+      if (!listaAlert) return;
+      listaAlert.innerHTML = "";
+      if (!alerts || alerts.length === 0) {
+        listaAlert.innerHTML = "<li>Nessun alert registrato.</li>";
+        return;
+      }
+      alerts.sort((a, b) => a.data.localeCompare(b.data));
+      alerts.forEach((a, indice) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <strong>${sanitizza(a.data)}: ${sanitizza(a.nota)}</strong> ${a.attivo ? '<span style="color: orange;">(Attivo)</span>' : '<span style="color: green;">(Completato)</span>'}
+          <div>
+            ${a.attivo ? `<button class="btn btn-small btn-success" onclick="segnaAlertCompletato(${indice})" aria-label="Segna alert come completato"><i class="fas fa-check"></i> Fatto</button>` : ''}
+          </div>
+        `;
+        listaAlert.appendChild(li);
+      });
+    }
+
     // Torna alla dashboard
     function tornaAllaDashboard() {
       salvaScheda();
@@ -1332,10 +1508,10 @@
             </div>
             <div class="section">
               <h2>Dispositivi presenti</h2>
-              <p><span class="label">CV:</span> ${pazienteCorrente.dispositivi.cv || 'Nessuno'} ${pazienteCorrente.dispositivi.cvSize ? `(${pazienteCorrente.dispositivi.cvSize})` : ''}</p>
-              <p><span class="label">CVC:</span> ${pazienteCorrente.dispositivi.cvc || 'Nessuno'}</p>
-              <p><span class="label">CVP:</span> ${pazienteCorrente.dispositivi.cvp || 'Nessuno'}</p>
-              <p><span class="label">PICC:</span> ${pazienteCorrente.dispositivi.picc || 'Nessuno'}</p>
+              <p><span class="label">CV:</span> ${pazienteCorrente.dispositivi?.cv || 'Nessuno'} ${pazienteCorrente.dispositivi?.cvSize ? `(${pazienteCorrente.dispositivi.cvSize})` : ''}</p>
+              <p><span class="label">CVC:</span> ${pazienteCorrente.dispositivi?.cvc || 'Nessuno'}</p>
+              <p><span class="label">CVP:</span> ${pazienteCorrente.dispositivi?.cvp || 'Nessuno'}</p>
+              <p><span class="label">PICC:</span> ${pazienteCorrente.dispositivi?.picc || 'Nessuno'}</p>
             </div>
             <div class="section">
               <h2>Lesione</h2>
@@ -1351,7 +1527,7 @@
             <div class="section">
               <h2>Storico Medicazioni</h2>
               <ul>
-                ${pazienteCorrente.medicazioni.length ? pazienteCorrente.medicazioni.map(m => `
+                ${pazienteCorrente.medicazioni?.length ? pazienteCorrente.medicazioni.map(m => `
                   <li>
                     ${sanitizza(m.data)}: ${sanitizza(m.nota)} ${m.fatta ? '(Completata)' : '(Non completata)'}
                     <div class="medicazione-details">
@@ -1359,6 +1535,16 @@
                     </div>
                   </li>
                 `).join('') : '<li>Nessuna medicazione registrata.</li>'}
+              </ul>
+            </div>
+            <div class="section">
+              <h2>Storico Alert</h2>
+              <ul>
+                ${pazienteCorrente.alerts?.length ? pazienteCorrente.alerts.map(a => `
+                  <li>
+                    ${sanitizza(a.data)}: ${sanitizza(a.nota)} ${a.attivo ? '(Attivo)' : '(Completato)'}
+                  </li>
+                `).join('') : '<li>Nessun alert registrato.</li>'}
               </ul>
             </div>
           </body>
@@ -1385,7 +1571,7 @@
       caricaDati();
       resetColoreGiornaliero();
       mostraListaPazienti();
-      [inputNome, inputCognome, inputLetto, dataNascita, dieta, usaMad, repartoProvenienza, cvSelect, cvSize, cvcSelect, cvpSelect, piccSelect, sedeLesione, sedeLesioneAltro, dataLesione, tipoTessutoSelect, tipoTessutoAltro, stadioLesione, note, medicazioneData, medicazioneNota, modalitaEsecuzione, sbarSituazione, sbarContesto, sbarValutazione, sbarRaccomandazioni]
+      [inputNome, inputCognome, inputLetto, dataNascita, dieta, usaMad, repartoProvenienza, cvSelect, cvSize, cvcSelect, cvpSelect, piccSelect, sedeLesione, sedeLesioneAltro, dataLesione, tipoTessutoSelect, tipoTessutoAltro, stadioLesione, note, medicazioneData, medicazioneNota, modalitaEsecuzione, alertData, alertNota, sbarSituazione, sbarContesto, sbarValutazione, sbarRaccomandazioni]
         .filter(el => el)
         .forEach(el => {
           el.addEventListener("change", salvaScheda);
