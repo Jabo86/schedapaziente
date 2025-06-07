@@ -246,7 +246,7 @@
 
     .btn:hover {
       background-color: #2b79e0;
-      transformational: translateY(-2px);
+      transform: translateY(-2px);
     }
 
     .btn:active {
@@ -290,7 +290,7 @@
 
     /* Lista medicazioni */
     #listaMedicazioni {
-      max-height: 150px;
+      max-height: 200px;
       overflow-y: auto;
       border: 1px solid #d1d9e0;
       border-radius: 6px;
@@ -300,15 +300,19 @@
     }
 
     #listaMedicazioni li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      display: block;
       padding: 8px 0;
       border-bottom: 1px solid #eee;
     }
 
     #listaMedicazioni li:last-child {
       border-bottom: none;
+    }
+
+    #listaMedicazioni .medicazione-details {
+      margin-top: 5px;
+      font-size: 0.9rem;
+      color: #555;
     }
 
     /* Toast notifiche */
@@ -415,7 +419,7 @@
         padding: 5px 0;
       }
 
-      #filtroData, .btn, #btnModificaMedicazione, #medicazioneData, #medicazioneNota {
+      #filtroData, .btn, #btnModificaMedicazione, #medicazioneData, #medicazioneNota, #modalitaEsecuzione {
         display: none;
       }
 
@@ -469,7 +473,7 @@
 </head>
 <body>
   <header>
-    <h1><i class="fas fa-hospital-user"></i> Gestione Pazienti </h1>
+    <h1><i class="fas fa-hospital-user"></i> Gestione Pazienti - Lesioni da Pressione</h1>
     <div class="header-actions">
       <button class="btn" onclick="aggiungiPaziente()" aria-label="Aggiungi nuovo paziente"><i class="fas fa-plus"></i> Aggiungi</button>
       <button class="btn" onclick="esportaPazienti()" aria-label="Esporta dati in JSON"><i class="fas fa-download"></i> Esporta</button>
@@ -650,27 +654,49 @@
           <label for="tipoTessutoAltro">Specifica altro tipo:</label>
           <input type="text" id="tipoTessutoAltro" placeholder="Specifica il tipo di tessuto..." aria-label="Specifica altro tipo di tessuto">
         </div>
+        <div>
+          <label for="stadioLesione">Stadio della lesione:</label>
+          <select id="stadioLesione" aria-label="Stadio della lesione">
+            <option value="">-- Seleziona stadio --</option>
+            <option value="Stadio I">Stadio I</option>
+            <option value="Stadio II">Stadio II</option>
+            <option value="Stadio III">Stadio III</option>
+            <option value="Stadio IV">Stadio IV</option>
+            <option value="Tessuto sospetto di lesione profonda">Tessuto sospetto di lesione profonda</option>
+            <option value="Non classificabile">Non classificabile</option>
+          </select>
+        </div>
       </div>
       <label for="note">Annotazioni cliniche:</label>
       <textarea id="note" rows="4" placeholder="Annotazioni cliniche..." aria-label="Annotazioni cliniche"></textarea>
-      <label for="decorso">Decorso:</label>
-      <textarea id="decorso" rows="4" placeholder="Descrizione decorso..." aria-label="Descrizione del decorso clinico"></textarea>
-      <label for="altreNote">Altre informazioni utili:</label>
-      <textarea id="altreNote" rows="3" placeholder="Altre informazioni..." aria-label="Altre informazioni utili"></textarea>
       <hr>
-      <label>Storico medicazioni:</label>
+      <label>Modalità di esecuzione:</label>
+      <div class="flex-row">
+        <div>
+          <textarea id="modalitaEsecuzione" rows="3" placeholder="Descrivi come è stata eseguita la medicazione (es. materiali, tecniche)..." aria-label="Modalità di esecuzione della medicazione"></textarea>
+        </div>
+      </div>
+      <label style="margin-top: 15px;">Aggiungi/Modifica medicazione:</label>
+      <div class="flex-row">
+        <div>
+          <label for="medicazioneData">Data:</label>
+          <input type="date" id="medicazioneData" aria-label="Data della medicazione" required>
+        </div>
+        <div>
+          <label for="medicazioneNota">Nota:</label>
+          <input type="text" id="medicazioneNota" placeholder="Nota medicazione..." aria-label="Nota della medicazione" required>
+        </div>
+      </div>
+      <div class="flex-row" style="align-items:flex-end;">
+        <button class="btn" onclick="aggiungiMedicazione()" aria-label="Aggiungi medicazione"><i class="fas fa-plus"></i> Aggiungi</button>
+        <button class="btn" id="btnModificaMedicazione" style="display: none;" onclick="confermaModificaMedicazione()" aria-label="Conferma modifica medicazione"><i class="fas fa-check"></i> Conferma Modifica</button>
+      </div>
+      <label style="margin-top: 15px;">Storico medicazioni:</label>
       <div class="flex-row" style="align-items:flex-end;">
         <input type="date" id="filtroData" aria-label="Filtra medicazioni per data">
         <button class="btn" onclick="filtraMedicazioni()" aria-label="Filtra medicazioni"><i class="fas fa-filter"></i> Filtra</button>
       </div>
       <ul id="listaMedicazioni" aria-live="polite"></ul>
-      <label style="margin-top: 15px;">Aggiungi/Modifica medicazione:</label>
-      <div class="flex-row" style="align-items:flex-end;">
-        <input type="date" id="medicazioneData" aria-label="Data della medicazione">
-        <input type="text" id="medicazioneNota" placeholder="Nota medicazione..." aria-label="Nota della medicazione">
-        <button class="btn" onclick="aggiungiMedicazione()" aria-label="Aggiungi medicazione"><i class="fas fa-plus"></i> Aggiungi</button>
-        <button class="btn" id="btnModificaMedicazione" style="display: none;" onclick="confermaModificaMedicazione()" aria-label="Conferma modifica medicazione"><i class="fas fa-check"></i> Conferma Modifica</button>
-      </div>
       <hr>
       <div class="action-buttons">
         <button class="btn btn-danger" id="btnDimetti" onclick="dimettiPaziente()" aria-label="Dimetti paziente"><i class="fas fa-sign-out-alt"></i> Dimetti</button>
@@ -703,14 +729,14 @@
     const dataLesione = document.getElementById("dataLesione");
     const tipoTessutoSelect = document.getElementById("tipoTessutoSelect");
     const tipoTessutoAltro = document.getElementById("tipoTessutoAltro");
+    const stadioLesione = document.getElementById("stadioLesione");
     const note = document.getElementById("note");
-    const decorso = document.getElementById("decorso");
-    const altreNote = document.getElementById("altreNote");
     const btnDimetti = document.getElementById("btnDimetti");
     const btnModificaMedicazione = document.getElementById("btnModificaMedicazione");
     const filtroData = document.getElementById("filtroData");
     const medicazioneData = document.getElementById("medicazioneData");
     const medicazioneNota = document.getElementById("medicazioneNota");
+    const modalitaEsecuzione = document.getElementById("modalitaEsecuzione");
     const listaMedicazioni = document.getElementById("listaMedicazioni");
     // Variabili SBAR
     const sbarSituazione = document.getElementById("sbarSituazione");
@@ -784,9 +810,8 @@
         sedeLesione: "",
         dataLesione: "",
         tipoTessuto: "",
+        stadioLesione: "",
         note: "",
-        decorso: "",
-        altreNote: "",
         medicazioni: [],
         ultimaMedicazioneFatta: null,
         dimesso: false,
@@ -842,9 +867,9 @@
           }
 
           // Verifica struttura di ciascun paziente
-          const validaPaziente = (p) => p && typeof p === 'object' && 'id' in p && 'nome' in p && 'cognome' in p && 'letto' in p;
+          const verificaPaziente = (p) => p && typeof p === 'object' && 'id' in p && 'nome' in p && 'cognome' in p && 'letto' in p;
           
-          if (!dati.pazienti.every(validaPaziente) || !dati.pazientiDimessi.every(validaPaziente)) {
+          if (!dati.pazienti.every(verificaPaziente) || !dati.pazientiDimessi.every(verificaPaziente)) {
             throw new Error("Dati pazienti non validi.");
           }
 
@@ -868,20 +893,36 @@
           pazienti.forEach(p => {
             p.dispositivi = p.dispositivi || {};
             p.medicazioni = p.medicazioni || [];
+            p.medicazioni.forEach(m => {
+              m.modalitaEsecuzione = m.modalitaEsecuzione || "";
+            });
             p.sbar = p.sbar || { situazione: "", contesto: "", valutazione: "", raccomandazioni: "" };
             p.dimesso = p.dimesso || false;
             p.dieta = p.dieta || "";
             p.usaMad = p.usaMad || "";
             p.repartoProvenienza = p.repartoProvenienza || "";
+            p.stadioLesione = p.stadioLesione || "";
+            p.note = p.note || "";
+            p.sedeLesione = p.sedeLesione || "";
+            p.dataLesione = p.dataLesione || "";
+            p.tipoTessuto = p.tipoTessuto || "";
           });
           pazientiDimessi.forEach(p => {
             p.dispositivi = p.dispositivi || {};
             p.medicazioni = p.medicazioni || [];
+            p.medicazioni.forEach(m => {
+              m.modalitaEsecuzione = m.modalitaEsecuzione || "";
+            });
             p.sbar = p.sbar || { situazione: "", contesto: "", valutazione: "", raccomandazioni: "" };
             p.dimesso = true;
             p.dieta = p.dieta || "";
             p.usaMad = p.usaMad || "";
             p.repartoProvenienza = p.repartoProvenienza || "";
+            p.stadioLesione = p.stadioLesione || "";
+            p.note = p.note || "";
+            p.sedeLesione = p.sedeLesione || "";
+            p.dataLesione = p.dataLesione || "";
+            p.tipoTessuto = p.tipoTessuto || "";
           });
 
           salvaDati();
@@ -894,7 +935,7 @@
       };
       reader.onerror = function() {
         mostraNotifica("Errore nella lettura del file.", "error");
-        event.target.value = ''; // Resetta l'input file
+        event.target.value = '';
       };
       reader.readAsText(file);
     }
@@ -916,9 +957,8 @@
         sedeLesione: "",
         dataLesione: "",
         tipoTessuto: "",
+        stadioLesione: "",
         note: "",
-        decorso: "",
-        altreNote: "",
         medicazioni: [],
         ultimaMedicazioneFatta: null,
         dimesso: false,
@@ -935,11 +975,10 @@
       mostraNotifica("Paziente aggiunto!");
     }
 
-    // Verifica se il paziente necessita di una medicazione oggi
-    function haMedicazioniNonFatte(paziente) {
+    // Verifica se il paziente ha lesioni
+    function haLesioni(paziente) {
       if (paziente.dimesso) return false;
-      const oggi = new Date().toISOString().slice(0, 10);
-      return paziente.ultimaMedicazioneFatta !== oggi;
+      return paziente.sedeLesione || paziente.dataLesione || paziente.tipoTessuto || paziente.stadioLesione;
     }
 
     // Mostra lista pazienti
@@ -964,13 +1003,13 @@
       }
     }
 
-    // Crea card paziente con SBAR
+    // Crea card paziente
     function creaCardPaziente(paziente, dimesso = false) {
       const card = document.createElement("div");
       card.classList.add("card");
       if (dimesso) {
         card.classList.add("dimesso");
-      } else if (haMedicazioniNonFatte(paziente)) {
+      } else if (haLesioni(paziente)) {
         card.classList.add("red");
       }
       card.innerHTML = `
@@ -981,6 +1020,7 @@
           <div>Dieta: ${sanitizza(paziente.dieta || "Non specificata")}</div>
           <div>Usa MAD: ${sanitizza(paziente.usaMad || "Non specificato")}</div>
           <div>Reparto: ${sanitizza(paziente.repartoProvenienza || "Non specificato")}</div>
+          <div>Stadio lesione: ${sanitizza(paziente.stadioLesione || "Non specificato")}</div>
           <small>Ultimo controllo: ${paziente.ultimoControllo ? sanitizza(paziente.ultimoControllo) : "Mai"}</small>
           <div class="sbar-content">
             <p><strong>Situazione:</strong> ${sanitizza(paziente.sbar?.situazione || "Non specificata")}</p>
@@ -1031,9 +1071,8 @@
       tipoTessutoSelect.value = (["Necrosi", "Fibrina", "Granulazione", "Epiteliizzazione", "Essudato"].includes(paziente.tipoTessuto)) ? paziente.tipoTessuto : (paziente.tipoTessuto ? "Altro" : "");
       tipoTessutoAltro.value = (tipoTessutoSelect.value === "Altro" && paziente.tipoTessuto) ? paziente.tipoTessuto : "";
       document.getElementById("tipoTessutoAltroContainer").style.display = (tipoTessutoSelect.value === "Altro") ? "block" : "none";
+      stadioLesione.value = paziente.stadioLesione || "";
       note.value = paziente.note || "";
-      decorso.value = paziente.decorso || "";
-      altreNote.value = paziente.altreNote || "";
       // Caricamento dati SBAR
       if (!paziente.sbar) paziente.sbar = { situazione: "", contesto: "", valutazione: "", raccomandazioni: "" };
       sbarSituazione.value = paziente.sbar.situazione || "";
@@ -1044,6 +1083,9 @@
       if (!paziente.medicazioni) paziente.medicazioni = [];
       mostraMedicazioni(paziente.medicazioni);
       filtroData.value = "";
+      medicazioneData.value = "";
+      medicazioneNota.value = "";
+      modalitaEsecuzione.value = "";
       btnModificaMedicazione.style.display = "none";
       indiceMedicazioneModifica = null;
     }
@@ -1090,9 +1132,8 @@
       pazienteCorrente.sedeLesione = sedeLesione.value === "Altro" ? sedeLesioneAltro.value.trim() : sedeLesione.value;
       pazienteCorrente.dataLesione = dataLesione.value;
       pazienteCorrente.tipoTessuto = tipoTessutoSelect.value === "Altro" ? tipoTessutoAltro.value.trim() : tipoTessutoSelect.value;
+      pazienteCorrente.stadioLesione = stadioLesione.value;
       pazienteCorrente.note = note.value.trim();
-      pazienteCorrente.decorso = decorso.value.trim();
-      pazienteCorrente.altreNote = altreNote.value.trim();
       // Salvataggio dati SBAR
       pazienteCorrente.sbar = {
         situazione: sbarSituazione.value.trim(),
@@ -1118,9 +1159,15 @@
         mostraNotifica("Data e nota sono obbligatori.", "error");
         return;
       }
-      pazienteCorrente.medicazioni.push({ data, nota, fatta: false });
+      pazienteCorrente.medicazioni.push({
+        data,
+        nota,
+        modalitaEsecuzione: modalitaEsecuzione.value.trim(),
+        fatta: false
+      });
       medicazioneData.value = "";
       medicazioneNota.value = "";
+      modalitaEsecuzione.value = "";
       mostraMedicazioni(pazienteCorrente.medicazioni);
       salvaScheda();
     }
@@ -1142,6 +1189,7 @@
       const medicazione = pazienteCorrente.medicazioni[indice];
       medicazioneData.value = medicazione.data;
       medicazioneNota.value = medicazione.nota;
+      modalitaEsecuzione.value = medicazione.modalitaEsecuzione || "";
       btnModificaMedicazione.style.display = "inline-block";
       indiceMedicazioneModifica = indice;
     }
@@ -1158,10 +1206,12 @@
       pazienteCorrente.medicazioni[indiceMedicazioneModifica] = {
         data,
         nota,
+        modalitaEsecuzione: modalitaEsecuzione.value.trim(),
         fatta: pazienteCorrente.medicazioni[indiceMedicazioneModifica].fatta
       };
       medicazioneData.value = "";
       medicazioneNota.value = "";
+      modalitaEsecuzione.value = "";
       btnModificaMedicazione.style.display = "none";
       indiceMedicazioneModifica = null;
       mostraMedicazioni(pazienteCorrente.medicazioni);
@@ -1191,7 +1241,10 @@
       medicazioni.forEach((m, indice) => {
         const li = document.createElement("li");
         li.innerHTML = `
-          ${sanitizza(m.data)}: ${sanitizza(m.nota)} ${m.fatta ? '<span style="color: green;">(Completata)</span>' : ''}
+          <strong>${sanitizza(m.data)}: ${sanitizza(m.nota)}</strong> ${m.fatta ? '<span style="color: green;">(Completata)</span>' : ''}
+          <div class="medicazione-details">
+            <p><strong>Modalità:</strong> ${sanitizza(m.modalitaEsecuzione || "Non specificata")}</p>
+          </div>
           <div>
             ${!m.fatta ? `<button class="btn btn-small btn-success" onclick="segnaMedicazioneFatta(${indice})" aria-label="Segna medicazione come fatta"><i class="fas fa-check"></i> Fatto</button>` : ''}
             <button class="btn btn-small" onclick="modificaMedicazione(${indice})" aria-label="Modifica medicazione"><i class="fas fa-edit"></i> Modifica</button>
@@ -1259,7 +1312,8 @@
               .section { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
               .label { font-weight: bold; display: inline-block; width: 150px; }
               ul { list-style: none; padding: 0; }
-              ul li { margin-bottom: 5px; }
+              ul li { margin-bottom: 10px; }
+              .medicazione-details { margin-left: 20px; font-size: 0.9rem; }
             </style>
           </head>
           <body>
@@ -1292,17 +1346,23 @@
               <p><span class="label">Sede:</span> ${pazienteCorrente.sedeLesione || 'Non specificata'}</p>
               <p><span class="label">Data rilevazione:</span> ${pazienteCorrente.dataLesione || 'Non specificata'}</p>
               <p><span class="label">Tipo di tessuto:</span> ${pazienteCorrente.tipoTessuto || 'Non specificato'}</p>
+              <p><span class="label">Stadio:</span> ${pazienteCorrente.stadioLesione || 'Non specificato'}</p>
             </div>
             <div class="section">
               <h2>Note</h2>
               <p><span class="label">Annotazioni cliniche:</span> ${pazienteCorrente.note || 'Nessuna'}</p>
-              <p><span class="label">Decorso:</span> ${pazienteCorrente.decorso || 'Nessuna descrizione'}</p>
-              <p><span class="label">Altre informazioni:</span> ${pazienteCorrente.altreNote || 'Nessuna'}</p>
             </div>
             <div class="section">
               <h2>Storico Medicazioni</h2>
               <ul>
-                ${pazienteCorrente.medicazioni.length ? pazienteCorrente.medicazioni.map(m => `<li>${sanitizza(m.data)}: ${sanitizza(m.nota)} ${m.fatta ? '(Completata)' : '(Non completata)'}</li>`).join('') : '<li>Nessuna medicazione registrata.</li>'}
+                ${pazienteCorrente.medicazioni.length ? pazienteCorrente.medicazioni.map(m => `
+                  <li>
+                    ${sanitizza(m.data)}: ${sanitizza(m.nota)} ${m.fatta ? '(Completata)' : '(Non completata)'}
+                    <div class="medicazione-details">
+                      <p><strong>Modalità:</strong> ${sanitizza(m.modalitaEsecuzione || 'Non specificata')}</p>
+                    </div>
+                  </li>
+                `).join('') : '<li>Nessuna medicazione registrata.</li>'}
               </ul>
             </div>
           </body>
@@ -1316,7 +1376,7 @@
     function init() {
       caricaDati();
       mostraListaPazienti();
-      [inputNome, inputCognome, inputLetto, dataNascita, dieta, usaMad, repartoProvenienza, cvSelect, cvSize, cvcSelect, cvpSelect, piccSelect, sedeLesione, sedeLesioneAltro, dataLesione, tipoTessutoSelect, tipoTessutoAltro, note, decorso, altreNote, sbarSituazione, sbarContesto, sbarValutazione, sbarRaccomandazioni]
+      [inputNome, inputCognome, inputLetto, dataNascita, dieta, usaMad, repartoProvenienza, cvSelect, cvSize, cvcSelect, cvpSelect, piccSelect, sedeLesione, sedeLesioneAltro, dataLesione, tipoTessutoSelect, tipoTessutoAltro, stadioLesione, note, medicazioneData, medicazioneNota, modalitaEsecuzione, sbarSituazione, sbarContesto, sbarValutazione, sbarRaccomandazioni]
         .filter(el => el)
         .forEach(el => {
           el.addEventListener("change", salvaScheda);
