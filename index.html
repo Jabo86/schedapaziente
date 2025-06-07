@@ -183,9 +183,7 @@
     .flex-row {
       display: flex;
       gap: 20px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+      align-items: center несколь    }
 
     .flex-row > * {
       flex: 1 1 200px;
@@ -294,7 +292,7 @@
       overflow-y: auto;
       border: 1px solid #d1d9e0;
       border-radius: 6px;
-      padding: 10px;
+      padding: 10px: 10px;
       background: #fafafa;
       margin-top: 10px;
     }
@@ -852,7 +850,7 @@
 
       if (!file.name.endsWith('.json')) {
         mostraNotifica("Seleziona un file JSON valido.", "error");
-        event.target.value = ''; // Resetta l'input file
+        event.target.value = '';
         return;
       }
 
@@ -861,19 +859,16 @@
         try {
           const dati = JSON.parse(e.target.result);
           
-          // Validazione dei dati importati
           if (!dati.pazienti || !Array.isArray(dati.pazienti) || !dati.pazientiDimessi || !Array.isArray(dati.pazientiDimessi)) {
             throw new Error("Formato JSON non valido.");
           }
 
-          // Verifica struttura di ciascun paziente
           const verificaPaziente = (p) => p && typeof p === 'object' && 'id' in p && 'nome' in p && 'cognome' in p && 'letto' in p;
           
           if (!dati.pazienti.every(verificaPaziente) || !dati.pazientiDimessi.every(verificaPaziente)) {
             throw new Error("Dati pazienti non validi.");
           }
 
-          // Controlla duplicati di ID e letti occupati
           const tuttiPazienti = [...dati.pazienti, ...dati.pazientiDimessi];
           const idSet = new Set(tuttiPazienti.map(p => p.id));
           const lettiAttivi = new Set(dati.pazienti.filter(p => !p.dimesso).map(p => p.letto));
@@ -885,11 +880,9 @@
             throw new Error("Letti duplicati trovati tra i pazienti non dimessi.");
           }
 
-          // Sovrascrivi i dati esistenti
           pazienti = dati.pazienti;
           pazientiDimessi = dati.pazientiDimessi;
 
-          // Normalizza i dati per evitare campi mancanti
           pazienti.forEach(p => {
             p.dispositivi = p.dispositivi || {};
             p.medicazioni = p.medicazioni || [];
@@ -906,6 +899,7 @@
             p.sedeLesione = p.sedeLesione || "";
             p.dataLesione = p.dataLesione || "";
             p.tipoTessuto = p.tipoTessuto || "";
+            p.ultimaMedicazioneFatta = p.ultimaMedicazioneFatta || null;
           });
           pazientiDimessi.forEach(p => {
             p.dispositivi = p.dispositivi || {};
@@ -923,6 +917,7 @@
             p.sedeLesione = p.sedeLesione || "";
             p.dataLesione = p.dataLesione || "";
             p.tipoTessuto = p.tipoTessuto || "";
+            p.ultimaMedicazioneFatta = p.ultimaMedicazioneFatta || null;
           });
 
           salvaDati();
@@ -931,7 +926,7 @@
         } catch (error) {
           mostraNotifica(`Errore durante l'importazione: ${error.message}`, "error");
         }
-        event.target.value = ''; // Resetta l'input file
+        event.target.value = '';
       };
       reader.onerror = function() {
         mostraNotifica("Errore nella lettura del file.", "error");
@@ -975,10 +970,14 @@
       mostraNotifica("Paziente aggiunto!");
     }
 
-    // Verifica se il paziente ha lesioni
+    // Verifica se il paziente ha lesioni e se la medicazione giornaliera è necessaria
     function haLesioni(paziente) {
       if (paziente.dimesso) return false;
-      return paziente.sedeLesione || paziente.dataLesione || paziente.tipoTessuto || paziente.stadioLesione;
+      const haLesione = paziente.sedeLesione || paziente.dataLesione || paziente.tipoTessuto || paziente.stadioLesione;
+      if (!haLesione) return false;
+      const oggi = new Date().toISOString().slice(0, 10);
+      const ultimaMedicazione = paziente.ultimaMedicazioneFatta || null;
+      return ultimaMedicazione !== oggi;
     }
 
     // Mostra lista pazienti
@@ -1073,7 +1072,6 @@
       document.getElementById("tipoTessutoAltroContainer").style.display = (tipoTessutoSelect.value === "Altro") ? "block" : "none";
       stadioLesione.value = paziente.stadioLesione || "";
       note.value = paziente.note || "";
-      // Caricamento dati SBAR
       if (!paziente.sbar) paziente.sbar = { situazione: "", contesto: "", valutazione: "", raccomandazioni: "" };
       sbarSituazione.value = paziente.sbar.situazione || "";
       sbarContesto.value = paziente.sbar.contesto || "";
@@ -1093,7 +1091,6 @@
     // Salva scheda
     function salvaScheda() {
       if (!pazienteCorrente) return;
-      // Validazione campi obbligatori
       if (!inputNome.value.trim() || !inputCognome.value.trim()) {
         mostraNotifica("Nome e Cognome sono obbligatori.", "error");
         return;
@@ -1110,7 +1107,6 @@
         inputLetto.value = pazienteCorrente.letto;
         return;
       }
-      // Validazione campi SBAR
       if (!sbarSituazione.value.trim() || !sbarContesto.value.trim() || !sbarValutazione.value.trim() || !sbarRaccomandazioni.value.trim()) {
         mostraNotifica("Tutti i campi SBAR sono obbligatori.", "error");
         return;
@@ -1134,7 +1130,6 @@
       pazienteCorrente.tipoTessuto = tipoTessutoSelect.value === "Altro" ? tipoTessutoAltro.value.trim() : tipoTessutoSelect.value;
       pazienteCorrente.stadioLesione = stadioLesione.value;
       pazienteCorrente.note = note.value.trim();
-      // Salvataggio dati SBAR
       pazienteCorrente.sbar = {
         situazione: sbarSituazione.value.trim(),
         contesto: sbarContesto.value.trim(),
@@ -1181,6 +1176,7 @@
       mostraMedicazioni(pazienteCorrente.medicazioni);
       salvaScheda();
       mostraNotifica("Medicazione completata!");
+      mostraListaPazienti();
     }
 
     // Modifica medicazione
@@ -1372,9 +1368,22 @@
       printWindow.print();
     }
 
+    // Resetta il colore ogni giorno
+    function resetColoreGiornaliero() {
+      const oggi = new Date().toISOString().slice(0, 10);
+      pazienti.forEach(paziente => {
+        if (haLesioni(paziente) && paziente.ultimaMedicazioneFatta !== oggi) {
+          paziente.ultimaMedicazioneFatta = null;
+        }
+      });
+      salvaDati();
+      mostraListaPazienti();
+    }
+
     // Inizializzazione
     function init() {
       caricaDati();
+      resetColoreGiornaliero();
       mostraListaPazienti();
       [inputNome, inputCognome, inputLetto, dataNascita, dieta, usaMad, repartoProvenienza, cvSelect, cvSize, cvcSelect, cvpSelect, piccSelect, sedeLesione, sedeLesioneAltro, dataLesione, tipoTessutoSelect, tipoTessutoAltro, stadioLesione, note, medicazioneData, medicazioneNota, modalitaEsecuzione, sbarSituazione, sbarContesto, sbarValutazione, sbarRaccomandazioni]
         .filter(el => el)
