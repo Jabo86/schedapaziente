@@ -53,7 +53,7 @@
     /* Dashboard */
     .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 20px;
       margin-top: 20px;
     }
@@ -64,7 +64,7 @@
       padding: 15px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       cursor: pointer;
-      text-align: center;
+      text-align: left;
       transition: transform 0.2s, box-shadow 0.2s;
     }
 
@@ -78,7 +78,8 @@
       color: #fff;
     }
 
-    .card.red .card-content {
+    .card.red .card-content,
+    .card.red .sbar-content {
       color: #fff;
     }
 
@@ -100,6 +101,21 @@
 
     .card.red small {
       color: #eee;
+    }
+
+    /* Stili per SBAR nella card */
+    .sbar-content {
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    .sbar-content p {
+      margin: 5px 0;
+    }
+
+    .sbar-content strong {
+      font-size: 0.95rem;
+      display: inline;
     }
 
     /* Scheda paziente */
@@ -178,6 +194,38 @@
     #tipoTessutoAltroContainer,
     #sedeLesioneAltroContainer {
       flex: 1 1 200px;
+    }
+
+    /* Sezione SBAR */
+    .sbar-section {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      border: 1px solid #d1d9e0;
+    }
+
+    .sbar-section textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #d1d9e0;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .sbar-section label {
+      font-weight: 600;
+      color: #1a3c5a;
+      margin-bottom: 5px;
+    }
+
+    .sbar-section .form-help {
+      font-size: 0.85rem;
+      color: #777;
+      margin-top: 2px;
     }
 
     /* Pulsanti */
@@ -329,6 +377,33 @@
         display: block;
       }
 
+      .sbar-section {
+        border: none;
+        background: transparent;
+        padding: 0;
+        margin-bottom: 20px;
+      }
+
+      .sbar-section textarea {
+        border: none;
+        background: transparent;
+        font-size: 1rem;
+        padding: 0;
+        resize: none;
+        height: auto;
+      }
+
+      .sbar-section label {
+        font-weight: bold;
+        display: inline-block;
+        width: 150px;
+        vertical-align: top;
+      }
+
+      .sbar-section .form-help {
+        display: none;
+      }
+
       #listaMedicazioni {
         border: none;
         background: transparent;
@@ -377,6 +452,18 @@
       .action-buttons {
         flex-direction: column;
       }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 10px;
+      }
+
+      .sbar-content {
+        font-size: 0.85rem;
+      }
     }
   </style>
 </head>
@@ -412,6 +499,40 @@
           <small id="dataNascitaHelp">Formato: GG/MM/AAAA</small>
         </div>
       </div>
+      <!-- Sezione SBAR spostata qui, dopo Data di nascita -->
+      <hr>
+      <label>SBAR:</label>
+      <div class="sbar-section">
+        <div class="flex-row">
+          <div>
+            <label for="sbarSituazione">Situazione:</label>
+            <textarea id="sbarSituazione" rows="3" placeholder="Descrizione della situazione attuale del paziente (es. motivo del contatto, stato attuale)..." aria-label="Situazione del paziente" required></textarea>
+            <small class="form-help">Descrivi brevemente la situazione attuale (es. paziente stabile, dolore toracico, febbre).</small>
+          </div>
+        </div>
+        <div class="flex-row">
+          <div>
+            <label for="sbarContesto">Contesto:</label>
+            <textarea id="sbarContesto" rows="3" placeholder="Informazioni rilevanti sulla storia clinica (es. diagnosi, allergie, terapie)..." aria-label="Contesto clinico del paziente" required></textarea>
+            <small class="form-help">Fornisci dettagli sulla storia clinica, allergie, terapie in corso o interventi precedenti.</small>
+          </div>
+        </div>
+        <div class="flex-row">
+          <div>
+            <label for="sbarValutazione">Valutazione:</label>
+            <textarea id="sbarValutazione" rows="3" placeholder="Valutazione attuale (es. segni vitali, sintomi, osservazioni)..." aria-label="Valutazione clinica del paziente" required></textarea>
+            <small class="form-help">Indica segni vitali, sintomi osservati e la tua valutazione clinica.</small>
+          </div>
+        </div>
+        <div class="flex-row">
+          <div>
+            <label for="sbarRaccomandazioni">Raccomandazioni:</label>
+            <textarea id="sbarRaccomandazioni" rows="3" placeholder="Azioni consigliate o richieste (es. esami, terapie, monitoraggio)..." aria-label="Raccomandazioni per il paziente" required></textarea>
+            <small class="form-help">Specifica le azioni necessarie, come esami, terapie o monitoraggio.</small>
+          </div>
+        </div>
+      </div>
+      <hr>
       <label>Dispositivi presenti:</label>
       <div class="dispositivi">
         <div class="dispositivo-item">
@@ -569,10 +690,28 @@
     const medicazioneData = document.getElementById("medicazioneData");
     const medicazioneNota = document.getElementById("medicazioneNota");
     const listaMedicazioni = document.getElementById("listaMedicazioni");
+    // Variabili SBAR
+    const sbarSituazione = document.getElementById("sbarSituazione");
+    const sbarContesto = document.getElementById("sbarContesto");
+    const sbarValutazione = document.getElementById("sbarValutazione");
+    const sbarRaccomandazioni = document.getElementById("sbarRaccomandazioni");
     let pazienteCorrente = null;
     let pazienti = [];
     let pazientiDimessi = [];
     let indiceMedicazioneModifica = null;
+
+    // Funzione per calcolare l'età
+    function calcolaEta(dataNascita) {
+      if (!dataNascita) return "Non specificata";
+      const oggi = new Date();
+      const nascita = new Date(dataNascita);
+      let eta = oggi.getFullYear() - nascita.getFullYear();
+      const meseDiff = oggi.getMonth() - nascita.getMonth();
+      if (meseDiff < 0 || (meseDiff === 0 && oggi.getDate() < nascita.getDate())) {
+        eta--;
+      }
+      return eta > 0 ? `${eta} anni` : "Meno di 1 anno";
+    }
 
     // Funzione per mostrare notifiche
     function mostraNotifica(messaggio, tipo = "success") {
@@ -625,7 +764,13 @@
         altreNote: "",
         medicazioni: [],
         ultimaMedicazioneFatta: null,
-        dimesso: false
+        dimesso: false,
+        sbar: {
+          situazione: "",
+          contesto: "",
+          valutazione: "",
+          raccomandazioni: ""
+        }
       }];
     }
 
@@ -666,7 +811,13 @@
         altreNote: "",
         medicazioni: [],
         ultimaMedicazioneFatta: null,
-        dimesso: false
+        dimesso: false,
+        sbar: {
+          situazione: "",
+          contesto: "",
+          valutazione: "",
+          raccomandazioni: ""
+        }
       };
       pazienti.push(nuovoPaziente);
       salvaDati();
@@ -677,7 +828,7 @@
     // Verifica se il paziente necessita di una medicazione oggi
     function haMedicazioniNonFatte(paziente) {
       if (paziente.dimesso) return false;
-      const oggi = new Date().toISOString().slice(0, 10); // Data corrente (YYYY-MM-DD)
+      const oggi = new Date().toISOString().slice(0, 10);
       return paziente.ultimaMedicazioneFatta !== oggi;
     }
 
@@ -703,7 +854,7 @@
       }
     }
 
-    // Crea card paziente
+    // Crea card paziente con SBAR
     function creaCardPaziente(paziente, dimesso = false) {
       const card = document.createElement("div");
       card.classList.add("card");
@@ -716,7 +867,14 @@
         <div class="card-content">
           <strong>${sanitizza(paziente.nome)} ${sanitizza(paziente.cognome)}</strong>
           <div>Letto: ${sanitizza(paziente.letto)}</div>
+          <div>Età: ${calcolaEta(paziente.dataNascita)}</div>
           <small>Ultimo controllo: ${paziente.ultimoControllo ? sanitizza(paziente.ultimoControllo) : "Mai"}</small>
+          <div class="sbar-content">
+            <p><strong>Situazione:</strong> ${sanitizza(paziente.sbar?.situazione || "Non specificata")}</p>
+            <p><strong>Contesto:</strong> ${sanitizza(paziente.sbar?.contesto || "Non specificato")}</p>
+            <p><strong>Valutazione:</strong> ${sanitizza(paziente.sbar?.valutazione || "Non specificata")}</p>
+            <p><strong>Raccomandazioni:</strong> ${sanitizza(paziente.sbar?.raccomandazioni || "Non specificate")}</p>
+          </div>
         </div>
       `;
       card.dataset.id = paziente.id;
@@ -760,6 +918,12 @@
       note.value = paziente.note || "";
       decorso.value = paziente.decorso || "";
       altreNote.value = paziente.altreNote || "";
+      // Caricamento dati SBAR
+      if (!paziente.sbar) paziente.sbar = { situazione: "", contesto: "", valutazione: "", raccomandazioni: "" };
+      sbarSituazione.value = paziente.sbar.situazione || "";
+      sbarContesto.value = paziente.sbar.contesto || "";
+      sbarValutazione.value = paziente.sbar.valutazione || "";
+      sbarRaccomandazioni.value = paziente.sbar.raccomandazioni || "";
       btnDimetti.disabled = paziente.dimesso;
       if (!paziente.medicazioni) paziente.medicazioni = [];
       mostraMedicazioni(paziente.medicazioni);
@@ -771,8 +935,9 @@
     // Salva scheda
     function salvaScheda() {
       if (!pazienteCorrente) return;
+      // Validazione campi obbligatori
       if (!inputNome.value.trim() || !inputCognome.value.trim()) {
-        mostraNotifica("Nome e Cognome obbligatori.", "error");
+        mostraNotifica("Nome e Cognome sono obbligatori.", "error");
         return;
       }
       const nuovoLetto = parseInt(inputLetto.value);
@@ -785,6 +950,11 @@
       if (lettoOccupato) {
         mostraNotifica("Letto già occupato.", "error");
         inputLetto.value = pazienteCorrente.letto;
+        return;
+      }
+      // Validazione campi SBAR
+      if (!sbarSituazione.value.trim() || !sbarContesto.value.trim() || !sbarValutazione.value.trim() || !sbarRaccomandazioni.value.trim()) {
+        mostraNotifica("Tutti i campi SBAR sono obbligatori.", "error");
         return;
       }
       pazienteCorrente.nome = inputNome.value.trim();
@@ -804,10 +974,17 @@
       pazienteCorrente.note = note.value.trim();
       pazienteCorrente.decorso = decorso.value.trim();
       pazienteCorrente.altreNote = altreNote.value.trim();
+      // Salvataggio dati SBAR
+      pazienteCorrente.sbar = {
+        situazione: sbarSituazione.value.trim(),
+        contesto: sbarContesto.value.trim(),
+        valutazione: sbarValutazione.value.trim(),
+        raccomandazioni: sbarRaccomandazioni.value.trim()
+      };
       pazienteCorrente.ultimoControllo = new Date().toISOString().slice(0, 10);
       salvaDati();
       mostraListaPazienti();
-      mostraNotifica("Scheda salvata!");
+      mostraNotifica("Scheda salvata con successo!");
     }
 
     // Aggiungi medicazione
@@ -819,7 +996,7 @@
       const data = medicazioneData.value;
       const nota = medicazioneNota.value.trim();
       if (!data || !nota) {
-        mostraNotifica("Data e nota obbligatori.", "error");
+        mostraNotifica("Data e nota sono obbligatori.", "error");
         return;
       }
       pazienteCorrente.medicazioni.push({ data, nota, fatta: false });
@@ -834,7 +1011,7 @@
       if (!pazienteCorrente || !pazienteCorrente.medicazioni[indice]) return;
       pazienteCorrente.medicazioni[indice].fatta = true;
       const oggi = new Date().toISOString().slice(0, 10);
-      pazienteCorrente.ultimaMedicazioneFatta = oggi; // Aggiorna la data dell'ultima medicazione fatta
+      pazienteCorrente.ultimaMedicazioneFatta = oggi;
       mostraMedicazioni(pazienteCorrente.medicazioni);
       salvaScheda();
       mostraNotifica("Medicazione completata!");
@@ -856,7 +1033,7 @@
       const data = medicazioneData.value;
       const nota = medicazioneNota.value.trim();
       if (!data || !nota) {
-        mostraNotifica("Data e nota obbligatori.", "error");
+        mostraNotifica("Data e nota sono obbligatori.", "error");
         return;
       }
       pazienteCorrente.medicazioni[indiceMedicazioneModifica] = {
@@ -972,7 +1149,14 @@
               <p><span class="label">Nome:</span> ${sanitizza(pazienteCorrente.nome)}</p>
               <p><span class="label">Cognome:</span> ${sanitizza(pazienteCorrente.cognome)}</p>
               <p><span class="label">Letto n°:</span> ${sanitizza(pazienteCorrente.letto)}</p>
-              <p><span class="label">Data di nascita:</span> ${pazienteCorrente.dataNascita || 'Non specificata'}</p>
+              <p><span class="label">Età:</span> ${calcolaEta(pazienteCorrente.dataNascita)}</p>
+            </div>
+            <div class="section">
+              <h2>Metodo SBAR</h2>
+              <p><span class="label">Situazione:</span> ${sanitizza(pazienteCorrente.sbar.situazione || 'Non specificata')}</p>
+              <p><span class="label">Contesto:</span> ${sanitizza(pazienteCorrente.sbar.contesto || 'Non specificato')}</p>
+              <p><span class="label">Valutazione:</span> ${sanitizza(pazienteCorrente.sbar.valutazione || 'Non specificata')}</p>
+              <p><span class="label">Raccomandazioni:</span> ${sanitizza(pazienteCorrente.sbar.raccomandazioni || 'Non specificate')}</p>
             </div>
             <div class="section">
               <h2>Dispositivi presenti</h2>
@@ -1010,7 +1194,7 @@
     function init() {
       caricaDati();
       mostraListaPazienti();
-      [inputNome, inputCognome, inputLetto, dataNascita, cvSelect, cvSize, cvcSelect, cvpSelect, piccSelect, sedeLesione, sedeLesioneAltro, dataLesione, tipoTessutoSelect, tipoTessutoAltro, note, decorso, altreNote]
+      [inputNome, inputCognome, inputLetto, dataNascita, cvSelect, cvSize, cvcSelect, cvpSelect, piccSelect, sedeLesione, sedeLesioneAltro, dataLesione, tipoTessutoSelect, tipoTessutoAltro, note, decorso, altreNote, sbarSituazione, sbarContesto, sbarValutazione, sbarRaccomandazioni]
         .filter(el => el)
         .forEach(el => {
           el.addEventListener("change", salvaScheda);
